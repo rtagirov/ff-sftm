@@ -1,6 +1,6 @@
 import numpy as np
 
-def patch(x, y, x_min, x_max, y_min, y_max, grid_max):
+def spot_patch(x, y, x_min, x_max, y_min, y_max, grid_max):
 
     if x_min >= 0.0 and x_max <= grid_max:
 

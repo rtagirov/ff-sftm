@@ -33,11 +33,14 @@ lat_neg = data[:, 3]
 
 grid_max = 359
 
+sdate = 100893
+edate = 104479
+
 spot = {}
 
-unique_dates = np.unique(data[:, 0].astype(int))
+#unique_dates = np.unique(data[:, 0].astype(int))
 
-for i, date in np.ndenumerate(unique_dates):
+for date in range(sdate, edate + 1):
 
     spot[date] = {'xp': [], 'yp': [], 'xn': [], 'yn': []}
 

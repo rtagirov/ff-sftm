@@ -1,4 +1,5 @@
 *.swp
 *.txt
+*.npy
 mag/
 __pycache__/

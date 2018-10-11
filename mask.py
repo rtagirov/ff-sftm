@@ -38,5 +38,5 @@ def spot_patch(x, y, x_min, x_max, y_min, y_max, grid_max):
 
     yc = (y >= y_min) & (y <= y_max)
 
-    return x[np.where(xc & yc)], y[np.where(xc & yc)]
+    return x[np.where(xc & yc)].tolist(), y[np.where(xc & yc)].tolist()
 

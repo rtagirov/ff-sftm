@@ -26,21 +26,22 @@ y_c = 0
 B_sat = 484.0
 B_spot = 1000.0
 
-mu_grid = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
+#magnetograms = sorted(glob.glob('./mag_test/CalcMagnetogram.2000.*'))
 magnetograms = sorted(glob.glob('./mag/CalcMagnetogram.2000.*'))
 
+#spot_mask = np.load('spot_mask_4proc.npy').item()
 spot_mask = np.load('spot_mask.npy').item()
 
 start = 170049
 
-g = open("fac_spots_484","w")
+f = open('ff_fac.out','w')
 
-for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 'Masking faculae')):
+for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 'Masking faculae', position = 0)):
 
-    name = re.findall("2000.(\d+)", mag)
+    name = re.findall('2000.(\d+)', mag)
 
     visibility = []
 
@@ -55,8 +56,6 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
     mu9 = []
     mu10 = []
     mu11 = []
-
-    factor = []
 
     data = np.loadtxt(mag)
 
@@ -114,8 +113,6 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
 
                 ff[i, j] = 1.0
 
-            x_rot = []
-
             x_rot = (j + 13.28 * (int(date) - start)) % 359
 
             x_pos = 180.0 - x_rot
@@ -124,8 +121,8 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
 
             delta_lambda = abs(x_pos - x_c)
 
-            distance = np.arccos((np.sin((y_c) * conv) * np.sin((y_pos) * conv) + np.cos((y_c) * conv) \
-                              * np.cos((y_pos) * conv) * np.cos(delta_lambda * conv))) / conv
+            distance = np.arccos(np.sin(y_c * conv) * np.sin(y_pos * conv) + np.cos(y_c * conv) * \
+                       np.cos(y_pos * conv) * np.cos(delta_lambda * conv)) / conv
 
             vis = np.cos(distance * conv)
 
@@ -191,8 +188,9 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
 
     total = r1 + r2 + r3 + r4 + r5 + r6 + r7 + r8 + r9 + r10 + r11
 
-    g.write("%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n" \
+#    f.write('%f \t ' * 13 + '%f \n' %(r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, date, total, sum(visibility) / norm))
+    f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n' \
             %(r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, date, total, sum(visibility) / norm))
 
-g.close()
+f.close()
 

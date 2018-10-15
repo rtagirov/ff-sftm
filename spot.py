@@ -8,9 +8,9 @@ import re
 
 import numpy as np
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 
 from tqdm import tqdm
-from multiprocessing import Manager
 
 from multiprocessing.pool import ThreadPool as Pool
 
@@ -58,15 +58,15 @@ def f(i):
     y_neg_max = lat_neg[i] + r / 2.0
 
     x_pos, y_pos = mask.spot_patch(x, y, x_pos_min, x_pos_max, y_pos_min, y_pos_max, grid_max)
+    x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
+    lock.acquire()
 #    spot[date]['xp'].append(x_pos)
 #    spot[date]['yp'].append(y_pos)
 #    spot_mask[date]['xp'] += x_pos
 #    spot_mask[date]['yp'] += y_pos
     spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
     spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
-                                                                          
-    x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
 #    spot[date]['xn'].append(x_neg)
 #    spot[date]['yn'].append(y_neg)
@@ -74,6 +74,14 @@ def f(i):
 #    spot_mask[date]['yn'] += y_neg
     spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
     spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
+
+    lock.release()
+
+def init(l):
+
+    global lock
+
+    lock = l
 
 sdate = int(min(data[:, 0]))
 edate = int(max(data[:, 0]))
@@ -105,7 +113,9 @@ if len(sys.argv) == 2:
 
     nproc = int(sys.argv[1])
 
-with Pool(processes = nproc) as p:
+l = mp.Lock()
+
+with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 
     maximum = len(data[:, 0])
 

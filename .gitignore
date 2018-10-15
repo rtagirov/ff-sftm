@@ -1,5 +1,7 @@
 *.swp
 *.txt
 *.npy
+*.out
 mag/
+mag_test/
 __pycache__/

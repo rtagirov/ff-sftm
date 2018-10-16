@@ -61,17 +61,11 @@ def f(i):
     x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
     lock.acquire()
-#    spot[date]['xp'].append(x_pos)
-#    spot[date]['yp'].append(y_pos)
-#    spot_mask[date]['xp'] += x_pos
-#    spot_mask[date]['yp'] += y_pos
+
     spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
     spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
 
-#    spot[date]['xn'].append(x_neg)
-#    spot[date]['yn'].append(y_neg)
-#    spot_mask[date]['xn'] += x_neg
-#    spot_mask[date]['yn'] += y_neg
+
     spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
     spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
 
@@ -91,21 +85,6 @@ spot_mask = {}
 for date in range(sdate, edate + 1):
 
     spot_mask[date] = {'xp': np.array([]), 'yp': np.array([]), 'xn': np.array([]), 'yn': np.array([])}
-
-#pool = mp.Pool(4)
-#pool = Pool(4)
-#pool.imap_unordered(f, tqdm(range(len(data[:, 0])), total = len(data[:, 0]), \
-#ncols = auxfunc.term_width(), desc = 'Masking spots'))
-
-#pool.imap(f, ([i, spot_mask] for i in tqdm(range(1000), total = 1000, \
-#ncols = auxfunc.term_width(), desc = 'Masking spots', position = 0)))
-
-#pool.imap(f, ([i, spot_mask] for i in tqdm(range(len(data[:, 0])), \
-#total = len(data[:, 0]), ncols = auxfunc.term_width(), desc = 'Masking spots', position = 0)))
-
-#pool.imap(f, tqdm(range(100), total = 100, \
-#pool.imap_unordered(f, tqdm(range(100), total = 100, \
-#ncols = auxfunc.term_width(), desc = 'Masking spots'))
 
 nproc = 4
 

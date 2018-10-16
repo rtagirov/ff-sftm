@@ -101,9 +101,9 @@ for k, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
 
                 helper = B - B_spot * len(spot) * 0.1 * 0.1
 
-                if helper <= 0:
+#                if helper <= 0:
 
-                    ff[i, j] = 0.0
+#                    ff[i, j] = 0.0
 
                 if helper > 0:
 

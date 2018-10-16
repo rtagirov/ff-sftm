@@ -39,27 +39,31 @@ start = 170049
 
 f = open('ff_fac.out','w')
 
-for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 'Masking faculae', position = 0)):
+for k, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 'Masking faculae', position = 0)):
 
     name = re.findall('2000.(\d+)', mag)
 
     visibility = []
 
-    mu1 = []
-    mu2 = []
-    mu3 = []
-    mu4 = []
-    mu5 = []
-    mu6 = []
-    mu7 = []
-    mu8 = []
-    mu9 = []
-    mu10 = []
-    mu11 = []
+#    mu = [[] for j in range(11)]
+
+#    mu1 = []
+#    mu2 = []
+#    mu3 = []
+#    mu4 = []
+#    mu5 = []
+#    mu6 = []
+#    mu7 = []
+#    mu8 = []
+#    mu9 = []
+#    mu10 = []
+#    mu11 = []
 
     data = np.loadtxt(mag)
 
     date = int(name[0])
+
+    r = np.zeros(11)
 
     ff = np.zeros((180, 360))
 
@@ -89,7 +93,7 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
             y_min = i
             y_max = i + 1
 
-            spot = (spot_x[np.where((x_min <= spot_x) & (spot_x < x_max) & (y_min <= spot_y) & (spot_y < y_max))])
+            spot = spot_x[np.where((spot_x >= x_min) & (spot_x < x_max) & (spot_y >= y_min) & (spot_y < y_max))]
 
             B = abs(data[i][j])
 
@@ -126,71 +130,78 @@ for i, mag in enumerate(tqdm(magnetograms, ncols = auxfunc.term_width(), desc = 
 
             vis = np.cos(distance * conv)
 
-            if vis <= mu_up[0] and vis > mu_low[0]:
+            idx = np.where((vis > mu_low) & (vis <= mu_up))
 
-                mu1.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#            mu[idx].append(ff[i, j] * vis * np.cos(y_pos * conv))
+            r[idx] += ff[i, j] * vis * np.cos(y_pos * conv)
 
-            if vis <= mu_up[1] and vis > mu_low[1]:
+#            if vis <= mu_up[0] and vis > mu_low[0]:
 
-                mu2.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu1.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[2] and vis > mu_low[2]:
+#            if vis <= mu_up[1] and vis > mu_low[1]:
 
-                mu3.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu2.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[3] and vis > mu_low[3]:
+#            if vis <= mu_up[2] and vis > mu_low[2]:
 
-                mu4.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu3.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[4] and vis > mu_low[4]:
+#            if vis <= mu_up[3] and vis > mu_low[3]:
 
-                mu5.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu4.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[5] and vis > mu_low[5]:
+#            if vis <= mu_up[4] and vis > mu_low[4]:
 
-                mu6.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu5.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[6] and vis > mu_low[6]:
+#            if vis <= mu_up[5] and vis > mu_low[5]:
 
-                mu7.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu6.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[7] and vis > mu_low[7]:
+#            if vis <= mu_up[6] and vis > mu_low[6]:
 
-                mu8.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu7.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[8] and vis > mu_low[8]:
+#            if vis <= mu_up[7] and vis > mu_low[7]:
 
-                mu9.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu8.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[9] and vis > mu_low[9]:
+#            if vis <= mu_up[8] and vis > mu_low[8]:
 
-                mu10.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu9.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
-            if vis <= mu_up[10] and vis > mu_low[10]:
+#            if vis <= mu_up[9] and vis > mu_low[9]:
 
-                mu11.append(ff[i,j]*vis*np.cos(y_pos*conv))
+#                mu10.append(ff[i,j]*vis*np.cos(y_pos*conv))
+
+#            if vis <= mu_up[10] and vis > mu_low[10]:
+
+#                mu11.append(ff[i,j]*vis*np.cos(y_pos*conv))
 
             if distance <= 90.0:
 
-                visibility.append(ff[i,j]*np.cos(distance*conv)*np.cos(y_pos*conv))
+                visibility.append(ff[i, j] * np.cos(distance * conv) * np.cos(y_pos * conv))
                     
-    r1 = sum(mu1) / norm
-    r2 = sum(mu2) / norm
-    r3 = sum(mu3) / norm
-    r4 = sum(mu4) / norm
-    r5 = sum(mu5) / norm
-    r6 = sum(mu6) / norm
-    r7 = sum(mu7) / norm
-    r8 = sum(mu8) / norm
-    r9 = sum(mu9) / norm
-    r10 = sum(mu10) / norm
-    r11 = sum(mu11) / norm
+#    r1 = sum(mu1) / norm
+#    r2 = sum(mu2) / norm
+#    r3 = sum(mu3) / norm
+#    r4 = sum(mu4) / norm
+#    r5 = sum(mu5) / norm
+#    r6 = sum(mu6) / norm
+#    r7 = sum(mu7) / norm
+#    r8 = sum(mu8) / norm
+#    r9 = sum(mu9) / norm
+#    r10 = sum(mu10) / norm
+#    r11 = sum(mu11) / norm
 
-    total = r1 + r2 + r3 + r4 + r5 + r6 + r7 + r8 + r9 + r10 + r11
+    r /= norm
+
+#    total = r1 + r2 + r3 + r4 + r5 + r6 + r7 + r8 + r9 + r10 + r11
 
 #    f.write('%f \t ' * 13 + '%f \n' %(r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, date, total, sum(visibility) / norm))
     f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n' \
-            %(r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, date, total, sum(visibility) / norm))
+            %(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), sum(visibility) / norm))
 
 f.close()
 

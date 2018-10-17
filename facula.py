@@ -60,7 +60,7 @@ for _, mag in enumerate(tqdm(magnetograms, \
     spot_x = np.concatenate((spot_mask[date]['xp'], spot_mask[date]['xn']))
     spot_y = np.concatenate((spot_mask[date]['yp'], spot_mask[date]['yn']))
 
-    with sharedmem.MapReduce() as pool:
+    with sharedmem.MapReduce(np = nproc) as pool:
     
         def px_contrib(px):
 
@@ -115,13 +115,12 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
             if distance <= 90.0:
 
-                visibility = np.concatenate((visibility, \
-                                             np.array([ff * np.cos(distance * conv) * np.cos(y_pos * conv)])))
+                visibility[0] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
 
         pool.map(px_contrib, px)
 
-        pool.close()
-        pool.join()
+#        pool.close()
+#        pool.join()
 
 #    p = Pool(processes = nproc)
 
@@ -132,9 +131,11 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
     r /= norm
 
+    visibility /= norm
+
     f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n' \
             %(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], \
-              date, sum(r), sum(visibility) / norm))
+              date, sum(r), visibility))
 
 f.close()
 

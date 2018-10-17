@@ -9,7 +9,8 @@ import numpy as np
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 
-from multiprocessing.pool import ThreadPool as Pool
+#from multiprocessing.pool import ThreadPool as Pool
+from multiprocessing import Process, Queue
 #from multiprocessing import Pool, freeze_support
 from multiprocessing import freeze_support
 
@@ -74,15 +75,15 @@ def scan_mag(px, spot_x, spot_y, data, date):
 
         if helper > 0:
 
-            ff[i, j] = (1 - len(spot) * 0.1 * 0.1) * helper / B_sat
+            ff = (1 - len(spot) * 0.1 * 0.1) * helper / B_sat
 
     if np.shape(spot) == (0, ) and B < B_sat:
 
-        ff[i, j] = B / B_sat
+        ff = B / B_sat
 
     if np.shape(spot) == (0, ) and B >= B_sat:
 
-        ff[i, j] = 1.0
+        ff = 1.0
 
     x_rot = (j + 13.28 * (date - start)) % 359
 
@@ -101,7 +102,7 @@ def scan_mag(px, spot_x, spot_y, data, date):
 
 #    lock.acquire()
 
-    r[idx] += ff[i, j] * vis * np.cos(y_pos * conv)
+    r[idx] += ff * vis * np.cos(y_pos * conv)
 
 #    lock.release()
 
@@ -109,7 +110,7 @@ def scan_mag(px, spot_x, spot_y, data, date):
 
 #        lock.acquire()
 
-        visibility.append(ff[i, j] * np.cos(distance * conv) * np.cos(y_pos * conv))
+        visibility.append(ff * np.cos(distance * conv) * np.cos(y_pos * conv))
 
 #        lock.acquire()
 
@@ -148,7 +149,7 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
     r = np.zeros(11)
 
-    ff = np.zeros((180, 360))
+#    ff = np.zeros((180, 360))
 
     spot_x = np.concatenate((spot_mask[date]['xp'], spot_mask[date]['xn']))
     spot_y = np.concatenate((spot_mask[date]['yp'], spot_mask[date]['yn']))
@@ -157,9 +158,28 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
 #    j = range(360)
 
-    px = list(itertools.product(range(180), range(360)))
+#    px = list(itertools.product(range(180), range(360)))
 
-#    args = [[i, j] for i in range(180) for j in range(360)]
+    px = [[i, j] for i in range(180) for j in range(360)]
+#    px = [[i, j] for i in range(10) for j in range(10)]
+
+    px = [px[i : i + nproc] for i in range(0, len(px), nproc)]
+
+    for group in px:
+
+        processes = [Process(target = scan_mag, args = (elem, spot_x, spot_y, data, date)) for elem in group]
+
+#        for elem in group:
+
+#            processes.append(Process(target = scan_mag, args = (elem, spot_x, spot_y, data, date)))
+
+        for p in processes:
+
+            p.start()
+
+        for p in processes:
+
+            p.join()
 
 #    for arg in args:
 
@@ -179,7 +199,7 @@ for _, mag in enumerate(tqdm(magnetograms, \
 #    l = mp.Lock()
 
 #    p = Pool(processes = nproc, initializer = init, initargs = (l,))
-    p = Pool(processes = nproc)
+#    p = Pool(processes = nproc)
 
 #    with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 
@@ -190,13 +210,13 @@ for _, mag in enumerate(tqdm(magnetograms, \
 #        p.imap(scan_mag, ([i, spot_x, spot_y, data, date] for i in range(180)))
 #        p.map(scan_mag, list(itertools.product(i, j)))
 #    p.map(partial(scan_mag, spot_x = spot_x, spot_y = spot_y, data = data, date = date), args)
-    p.starmap(scan_mag, zip(px, repeat(spot_x), repeat(spot_y), repeat(data), repeat(date)))
+#    p.starmap(scan_mag, zip(px, repeat(spot_x), repeat(spot_y), repeat(data), repeat(date)))
 #        p.imap(f, range(180))
 #        p.imap(f, ([pair, spot_x, spot_y, data, date] for i, j in itertools.product(range(180), range(360))))
 #        p.imap(f, ([i, j, data[i][j], date] for i, j in itertools.product(range(180), range(360))))
 
-    p.close()
-    p.join()
+#    p.close()
+#    p.join()
 
     r /= norm
 

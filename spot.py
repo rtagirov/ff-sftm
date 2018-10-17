@@ -65,7 +65,6 @@ def f(i):
     spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
     spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
 
-
     spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
     spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
 
@@ -98,7 +97,10 @@ with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 
     maximum = len(data[:, 0])
 
-    with tqdm(total = maximum, ncols = auxfunc.term_width(), desc = 'Masking spots', position = 0) as pbar:
+    with tqdm(total = maximum, \
+              ncols = auxfunc.term_width(), \
+              desc = 'Masking spots, nproc = ' + str(nproc), \
+              position = 0) as pbar:
 
         for i, _ in enumerate(p.imap_unordered(f, range(maximum))):
 

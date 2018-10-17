@@ -9,9 +9,9 @@ import numpy as np
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 
-from multiprocessing.pool import ThreadPool as Pool
-#from multiprocessing import Pool, freeze_support
-from multiprocessing import freeze_support
+#from multiprocessing.pool import ThreadPool as Pool
+from multiprocessing import Pool, freeze_support
+#from multiprocessing import freeze_support
 
 from tqdm import tqdm
 from functools import partial
@@ -113,7 +113,15 @@ def scan_mag(px, spot_x, spot_y, data, date):
 
 #        lock.acquire()
 
-#def init(l):
+#def init():
+
+#    global r
+
+#    global visibility
+
+#    r = np.zeros(11)
+
+#    visibility = []
 
 #    global lock
 
@@ -132,6 +140,8 @@ magnetograms = sorted(glob.glob('./mag/CalcMagnetogram.2000.*'))
 spot_mask = np.load('spot_mask.npy').item()
 
 f = open('ff_fac.out','w')
+
+px = list(itertools.product(range(180), range(360)))
 
 for _, mag in enumerate(tqdm(magnetograms, \
                              ncols = auxfunc.term_width(), \
@@ -157,8 +167,6 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
 #    j = range(360)
 
-    px = list(itertools.product(range(180), range(360)))
-
 #    args = [[i, j] for i in range(180) for j in range(360)]
 
 #    for arg in args:
@@ -178,7 +186,8 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
 #    l = mp.Lock()
 
-#    p = Pool(processes = nproc, initializer = init, initargs = (l,))
+#    p = Pool(processes = nproc, initializer = init, initargs = (r, visibility,))
+#    p = Pool(processes = nproc, initializer = init)
     p = Pool(processes = nproc)
 
 #    with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:

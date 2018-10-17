@@ -17,8 +17,8 @@ conv = np.pi / 180.0
 
 norm = 90 * 90 * 4 / np.pi**2 * np.pi
 
-x_c = 0
-y_c = 0
+x_c = 0.0
+y_c = 0.0
 
 B_sat = 484.0
 B_spot = 1000.0

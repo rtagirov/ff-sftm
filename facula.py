@@ -165,7 +165,9 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
     px = [px[i : i + nproc] for i in range(0, len(px), nproc)]
 
-    for group in px:
+    for k, group in enumerate(px):
+
+        print(k, group)
 
         processes = [Process(target = scan_mag, args = (elem, spot_x, spot_y, data, date)) for elem in group]
 
@@ -177,9 +179,9 @@ for _, mag in enumerate(tqdm(magnetograms, \
 
             p.start()
 
-        for p in processes:
+#        for p in processes:
 
-            p.join()
+#            p.join()
 
 #    for arg in args:
 

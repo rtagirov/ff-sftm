@@ -6,7 +6,7 @@ import glob
 import re
 
 import numpy as np
-import multiprocessing as mp
+#import multiprocessing as mp
 
 from multiprocessing import Pool
 from tqdm import tqdm
@@ -27,12 +27,11 @@ mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
 magnetograms = sorted(glob.glob('./mag/CalcMagnetogram.2000.*'))
+#magnetograms = sorted(glob.glob('./mag_test/CalcMagnetogram.2000.*'))
 
 spot_mask = np.load('spot_mask.npy').item()
 
 start = 170049
-
-f = open('ff_fac.out','w')
 
 def scan_mag(mag):
 
@@ -104,18 +103,21 @@ def scan_mag(mag):
 
     visibility /= norm
 
-    lock.acquire()
+#    lock.acquire()
 
-    f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' \
-            %(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), visibility))
+#    f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' \
+#            %(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), visibility))
 
-    lock.release()
+#    lock.release()
 
-def init(l):
+#    return date, r, visibility
+    return r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), visibility
 
-    global lock
+#def init(l):
 
-    lock = l
+#    global lock
+
+#    lock = l
 
 nproc = 4
 
@@ -123,9 +125,12 @@ if len(sys.argv) == 2:
 
     nproc = int(sys.argv[1])
 
-l = mp.Lock()
+f = open('ff_fac.out','w')
 
-with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
+#l = mp.Lock()
+
+#with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
+with Pool(processes = nproc) as p:
 
     maximum = len(magnetograms)
 
@@ -134,7 +139,14 @@ with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
               desc = 'Masking faculae, nproc = ' + str(nproc), \
               position = 0) as pbar:
 
-        for i, _ in enumerate(p.imap(scan_mag, magnetograms)):
+#        results = p.imap(scan_mag, magnetograms, chunksize = 4)
+        results = p.imap(scan_mag, magnetograms)
+
+#        for i, _ in enumerate(p.imap(scan_mag, magnetograms)):
+        for _, result in enumerate(results):
+
+            
+            f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' % result)
 
             pbar.update()
 

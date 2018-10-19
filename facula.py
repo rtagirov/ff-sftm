@@ -144,7 +144,6 @@ with Pool(processes = nproc) as p:
 
 #        for i, _ in enumerate(p.imap(scan_mag, magnetograms)):
         for _, result in enumerate(results):
-
             
             f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' % result)
 

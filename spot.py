@@ -93,7 +93,10 @@ with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 
     maximum = len(data[:, 0])
 
-    with tqdm(total = maximum, ncols = auxfunc.term_width(), desc = 'Masking spots', position = 0) as pbar:
+    with tqdm(total = maximum, \
+              ncols = auxfunc.term_width(), \
+              desc = 'Masking spots, nrpoc = ' + str(nproc), \
+              position = 0) as pbar:
 
         for i, _ in enumerate(p.imap(line_contrib, range(maximum))):
 

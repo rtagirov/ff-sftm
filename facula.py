@@ -1,17 +1,19 @@
 import importlib
 import itertools
 import auxfunc
+import auxsys
 import sys
 import glob
 import re
+import os
 
 import numpy as np
-#import multiprocessing as mp
 
 from multiprocessing import Pool
 from tqdm import tqdm
 
 importlib.reload(auxfunc)
+importlib.reload(auxsys)
 
 conv = np.pi / 180.0
 
@@ -25,9 +27,6 @@ B_spot = 1000.0
 
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
-
-magnetograms = sorted(glob.glob('./mag/CalcMagnetogram.2000.*'))
-#magnetograms = sorted(glob.glob('./mag_test/CalcMagnetogram.2000.*'))
 
 spot_mask = np.load('spot_mask.npy').item()
 
@@ -103,21 +102,7 @@ def scan_mag(mag):
 
     visibility /= norm
 
-#    lock.acquire()
-
-#    f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' \
-#            %(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), visibility))
-
-#    lock.release()
-
-#    return date, r, visibility
     return r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], date, sum(r), visibility
-
-#def init(l):
-
-#    global lock
-
-#    lock = l
 
 nproc = 4
 
@@ -125,11 +110,16 @@ if len(sys.argv) == 2:
 
     nproc = int(sys.argv[1])
 
+mag_dir = './mag/'
+
+if not os.path.isdir(mag_dir):
+
+    auxsys.abort('The directory with magnetograms is missing. Abort.')
+
+magnetograms = sorted(glob.glob(mag_dir + 'CalcMagnetogram.2000.*'))
+
 f = open('ff_fac.out','w')
 
-#l = mp.Lock()
-
-#with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 with Pool(processes = nproc) as p:
 
     maximum = len(magnetograms)
@@ -142,7 +132,6 @@ with Pool(processes = nproc) as p:
 #        results = p.imap(scan_mag, magnetograms, chunksize = 4)
         results = p.imap(scan_mag, magnetograms)
 
-#        for i, _ in enumerate(p.imap(scan_mag, magnetograms)):
         for _, result in enumerate(results):
             
             f.write('%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %i \t %f \t %f \n' % result)

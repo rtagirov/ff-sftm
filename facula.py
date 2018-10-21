@@ -56,13 +56,7 @@ def scan_mag(mag):
 
     for i, j in itertools.product(range(180), range(360)):
 
-        x_min = j
-        x_max = j + 1
-
-        y_min = i
-        y_max = i + 1
-
-        spot = spot_x[np.where((spot_x >= x_min) & (spot_x < x_max) & (spot_y >= y_min) & (spot_y < y_max))]
+        spot = spot_x[np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))]
 
         B = abs(data[i][j])
 

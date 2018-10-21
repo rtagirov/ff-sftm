@@ -4,12 +4,9 @@ import mask
 import sys
 
 import numpy as np
-#import multiprocessing as mp
 
 from tqdm import tqdm
 from multiprocessing import Pool
-
-#from multiprocessing.pool import ThreadPool as Pool
 
 importlib.reload(auxfunc)
 importlib.reload(mask)
@@ -59,16 +56,6 @@ def line_contrib(i):
 
     return date, x_pos, y_pos, x_neg, y_neg
 
-#    lock.acquire()
-
-#    lock.release()
-
-#def init(l):
-
-#    global lock
-
-#    lock = l
-
 sdate = int(min(data[:, 0]))
 edate = int(max(data[:, 0]))
 
@@ -84,9 +71,6 @@ if len(sys.argv) == 2:
 
     nproc = int(sys.argv[1])
 
-#l = mp.Lock()
-
-#with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
 with Pool(processes = nproc) as p:
 
     maximum = len(data[:, 0])
@@ -113,5 +97,6 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
+#np.save('spot_mask_nproc_' + str(nproc) + '.npy', spot_mask)
 np.save('spot_mask.npy', spot_mask)
 

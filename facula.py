@@ -113,7 +113,8 @@ if not os.path.isdir(mag_dir):
 
 magnetograms = sorted(glob.glob(mag_dir + 'CalcMagnetogram.2000.*'))
 
-f = open('ff_fac_nproc_' + str(nproc) + '.out', 'w')
+#f = open('ff_fac_nproc_' + str(nproc) + '.out', 'w')
+f = open('ff_fac.out', 'w')
 
 fmt = '%i ' + '%10.6f ' * 12 + '%10.6f\n'
 

@@ -4,11 +4,12 @@ import mask
 import sys
 
 import numpy as np
-import multiprocessing as mp
+#import multiprocessing as mp
 
 from tqdm import tqdm
+from multiprocessing import Pool
 
-from multiprocessing.pool import ThreadPool as Pool
+#from multiprocessing.pool import ThreadPool as Pool
 
 importlib.reload(auxfunc)
 importlib.reload(mask)
@@ -56,21 +57,17 @@ def line_contrib(i):
     x_pos, y_pos = mask.spot_patch(x, y, x_pos_min, x_pos_max, y_pos_min, y_pos_max, grid_max)
     x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
-    lock.acquire()
+    return date, x_pos, y_pos, x_neg, y_neg
 
-    spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
-    spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
+#    lock.acquire()
 
-    spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
-    spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
+#    lock.release()
 
-    lock.release()
+#def init(l):
 
-def init(l):
+#    global lock
 
-    global lock
-
-    lock = l
+#    lock = l
 
 sdate = int(min(data[:, 0]))
 edate = int(max(data[:, 0]))
@@ -87,9 +84,10 @@ if len(sys.argv) == 2:
 
     nproc = int(sys.argv[1])
 
-l = mp.Lock()
+#l = mp.Lock()
 
-with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
+#with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
+with Pool(processes = nproc) as p:
 
     maximum = len(data[:, 0])
 
@@ -98,7 +96,17 @@ with Pool(processes = nproc, initializer = init, initargs = (l,)) as p:
               desc = 'Masking spots, nrpoc = ' + str(nproc), \
               position = 0) as pbar:
 
-        for i, _ in enumerate(p.imap(line_contrib, range(maximum))):
+        results = p.imap(line_contrib, range(maximum))
+
+        for _, result in enumerate(results):
+
+            date, x_pos, y_pos, x_neg, y_neg = result
+
+            spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
+            spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
+
+            spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
+            spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
 
             pbar.update()
 

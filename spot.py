@@ -93,7 +93,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Masking spots, nrpoc = ' + str(nproc), \
+              desc = 'Masking spots, nproc = ' + str(nproc), \
               position = 0) as pbar:
 
         results = p.imap(line_contrib, range(maximum))

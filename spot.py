@@ -2,6 +2,7 @@ import importlib
 import auxfunc
 import mask
 import sys
+import math
 
 import numpy as np
 
@@ -75,12 +76,16 @@ with Pool(processes = nproc) as p:
 
     maximum = len(data[:, 0])
 
+#    n_chunks = math.ceil(maximum / nproc)
+#    n_chunks = 100
+    n_chunks = 1
+
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
               desc = 'Masking spots, nproc = ' + str(nproc), \
               position = 0) as pbar:
 
-        results = p.imap(line_contrib, range(maximum))
+        results = p.imap(line_contrib, range(maximum), chunksize = n_chunks)
 
         for _, result in enumerate(results):
 

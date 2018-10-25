@@ -12,6 +12,26 @@ from multiprocessing import Pool
 importlib.reload(auxfunc)
 importlib.reload(mask)
 
+nproc = 4
+
+inp = 'input_C22_26.5'
+
+args = sys.argv[1:]
+
+for i, arg in enumerate(args):
+
+    if arg == '--inp':
+
+        inp = args[i + 1]
+
+    if arg == '--np':
+
+        nproc = int(args[i + 1])
+
+D = inp.split('_')[2]
+
+#sys.exit()
+
 factor = 10
 
 xvalues = np.around(np.linspace(0.0, 359.0, num = 360 * factor), decimals = 1)
@@ -21,7 +41,7 @@ x, y = np.meshgrid(xvalues, yvalues)
 
 conv = np.pi / 180.0
 
-data = np.loadtxt('spot_evol.inp')
+data = np.loadtxt(inp)
 
 long_pos = data[:, 2]
 long_neg = data[:, 4]
@@ -33,7 +53,7 @@ grid_max = 359
 
 def line_contrib(i):
 
-    date = int(data[i, 0])
+#    date = data[i, 0]
 
     r = np.sqrt(data[i, 5])
 
@@ -55,26 +75,26 @@ def line_contrib(i):
     x_pos, y_pos = mask.spot_patch(x, y, x_pos_min, x_pos_max, y_pos_min, y_pos_max, grid_max)
     x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
-    return date, x_pos, y_pos, x_neg, y_neg
+#    return date, x_pos, y_pos, x_neg, y_neg
+    return x_pos, y_pos, x_neg, y_neg
 
-sdate = int(min(data[:, 0]))
-edate = int(max(data[:, 0]))
+#sdate = min(data[:, 0])
+#edate = max(data[:, 0])
+
+times = data[:, 0]
 
 spot_mask = {}
 
-for date in range(sdate, edate + 1):
+#for date in range(sdate, edate + 1):
+for time in times:
 
-    spot_mask[date] = {'xp': np.array([]), 'yp': np.array([]), 'xn': np.array([]), 'yn': np.array([])}
+    spot_mask[time] = {'xp': np.array([]), 'yp': np.array([]), 'xn': np.array([]), 'yn': np.array([])}
 
-nproc = 4
-
-if len(sys.argv) == 2:
-
-    nproc = int(sys.argv[1])
+#sys.exit()
 
 with Pool(processes = nproc) as p:
 
-    maximum = len(data[:, 0])
+    maximum = len(times)
 
 #    n_chunks = math.ceil(maximum / nproc)
 #    n_chunks = 100
@@ -87,21 +107,23 @@ with Pool(processes = nproc) as p:
 
         results = p.imap(line_contrib, range(maximum), chunksize = n_chunks)
 
-        for _, result in enumerate(results):
+        for i, result in enumerate(results):
 
-            date, x_pos, y_pos, x_neg, y_neg = result
+#            date, x_pos, y_pos, x_neg, y_neg = result
+            x_pos, y_pos, x_neg, y_neg = result
 
-            spot_mask[date]['xp'] = np.concatenate((spot_mask[date]['xp'], x_pos))
-            spot_mask[date]['yp'] = np.concatenate((spot_mask[date]['yp'], y_pos))
+            time = times[i]
 
-            spot_mask[date]['xn'] = np.concatenate((spot_mask[date]['xn'], x_neg))
-            spot_mask[date]['yn'] = np.concatenate((spot_mask[date]['yn'], y_neg))
+            spot_mask[time]['xp'] = np.concatenate((spot_mask[time]['xp'], x_pos))
+            spot_mask[time]['yp'] = np.concatenate((spot_mask[time]['yp'], y_pos))
+
+            spot_mask[time]['xn'] = np.concatenate((spot_mask[time]['xn'], x_neg))
+            spot_mask[time]['yn'] = np.concatenate((spot_mask[time]['yn'], y_neg))
 
             pbar.update()
 
     p.close()
     p.join()
 
-#np.save('spot_mask_nproc_' + str(nproc) + '.npy', spot_mask)
-np.save('spot_mask.npy', spot_mask)
+spot_mask = np.load('spot_mask_D' + D + '.npy').item()
 

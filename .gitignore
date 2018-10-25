@@ -3,4 +3,5 @@
 *.npy
 *.out
 mag_*/
+mag/
 __pycache__/

@@ -4,7 +4,7 @@ import auxfunc
 import auxsys
 import sys
 import glob
-import re
+#import re
 import os
 
 import numpy as np
@@ -15,11 +15,31 @@ from tqdm import tqdm
 importlib.reload(auxfunc)
 importlib.reload(auxsys)
 
+mag_dir = './mag/'
+
+if not os.path.isdir(mag_dir):
+
+    auxsys.abort('The directory with magnetograms is missing. Abort.')
+
 nproc = 4
 
-if len(sys.argv) == 2:
+B_sat = 484.0
 
-    nproc = int(sys.argv[1])
+args = sys.argv[1:]
+
+for i, arg in enumerate(args):
+
+    if arg == '--Bsat':
+
+        B_sat = float(args[i + 1])
+
+    if arg == '--D':
+
+        D = args[i + 1]
+
+    if arg == '--np':
+
+        nproc = int(args[i + 1])
 
 conv = np.pi / 180.0
 
@@ -28,24 +48,22 @@ norm = 90 * 90 * 4 / np.pi**2 * np.pi
 x_c = 0.0
 y_c = 0.0
 
-B_sat = 484.0
 B_spot = 1000.0
 
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
-#spot_mask = np.load('spot_mask_nproc_' + str(nproc) + '.npy').item()
-spot_mask = np.load('spot_mask.npy').item()
+spot_mask = np.load('spot_mask_D' + D + '.npy').item()
 
 start = 170049
 
-def scan_mag(mag):
+def scan_mag(date):
 
-    name = re.findall('2000.(\d+)', mag)
+#    name = re.findall('2000.(\d+)', mag)
 
-    data = np.loadtxt(mag)
+    data = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date))
 
-    date = int(name[0])
+#    date = int(name[0])
 
     visibility = 0.0
 
@@ -105,16 +123,15 @@ def scan_mag(mag):
 
     return date, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], sum(r), visibility
 
-mag_dir = './mag_21/'
+#magnetograms = sorted(glob.glob(mag_dir + 'CalcMagnetogram.2000.*'))
 
-if not os.path.isdir(mag_dir):
+# cycle 22
+sdate = 104696
+edate = 108327
 
-    auxsys.abort('The directory with magnetograms is missing. Abort.')
+dates = [i for i in range(sdate, edate + 1)]
 
-magnetograms = sorted(glob.glob(mag_dir + 'CalcMagnetogram.2000.*'))
-
-#f = open('ff_fac_nproc_' + str(nproc) + '.out', 'w')
-f = open('ff_fac.out', 'w')
+f = open('ff_fac_D' + D + '_Bsat' + str(B_sat), 'w')
 
 fmt = '%i ' + '%10.6f ' * 12 + '%10.6f\n'
 
@@ -127,8 +144,7 @@ with Pool(processes = nproc) as p:
               desc = 'Masking faculae, nproc = ' + str(nproc), \
               position = 0) as pbar:
 
-#        results = p.imap(scan_mag, magnetograms, chunksize = 4)
-        results = p.imap(scan_mag, magnetograms)
+        results = p.imap(scan_mag, dates)
 
         for _, result in enumerate(results):
 

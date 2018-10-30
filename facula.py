@@ -4,7 +4,7 @@ import auxfunc
 import auxsys
 import sys
 import glob
-#import re
+import math
 import os
 
 import numpy as np
@@ -15,31 +15,37 @@ from tqdm import tqdm
 importlib.reload(auxfunc)
 importlib.reload(auxsys)
 
+def get_args(args):
+
+    D = '26.5'
+
+    B_sat = 484.0
+
+    nproc = 4
+
+    for i, arg in enumerate(args):
+
+        if arg == '--Bsat':
+
+            B_sat = float(args[i + 1])
+
+        if arg == '--D':
+
+            D = args[i + 1]
+
+        if arg == '--np':
+
+            nproc = int(args[i + 1])
+
+    return D, B_sat, nproc
+
 mag_dir = './mag/'
 
 if not os.path.isdir(mag_dir):
 
     auxsys.abort('The directory with magnetograms is missing. Abort.')
 
-nproc = 4
-
-B_sat = 484.0
-
-args = sys.argv[1:]
-
-for i, arg in enumerate(args):
-
-    if arg == '--Bsat':
-
-        B_sat = float(args[i + 1])
-
-    if arg == '--D':
-
-        D = args[i + 1]
-
-    if arg == '--np':
-
-        nproc = int(args[i + 1])
+D, B_sat, nproc = get_args(sys.argv[1:])
 
 conv = np.pi / 180.0
 
@@ -53,34 +59,43 @@ B_spot = 1000.0
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
-spot_mask = np.load('spot_mask_D' + D + '.npy').item()
+spot_mask = np.load('./out/spot_mask_D' + D + '.npy').item()
+
+times = list(spot_mask.keys())
+
+step = times[1] - times[0]
+
+cad = int(1.0 / step)
 
 start = 170049
 
 def scan_mag(date):
 
-#    name = re.findall('2000.(\d+)', mag)
+    B0 = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date[0]))
+    B1 = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date[1]))
 
-    data = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date))
+    v = np.zeros(cad)
 
-#    date = int(name[0])
+    r = np.zeros((cad, 11))
 
-    visibility = 0.0
+#    B = np.zeros((cad,) + mag0.shape)
 
-    r = np.zeros(11)
+    t = np.linspace(0.0, 1.0, cad, endpoint = False)
 
-    spot_x = np.concatenate((spot_mask[date]['xp'], spot_mask[date]['xn']))
-    spot_y = np.concatenate((spot_mask[date]['yp'], spot_mask[date]['yn']))
+    for k, i, j in itertools.product(range(cad), range(180), range(360)):
 
-    for i, j in itertools.product(range(180), range(360)):
+        time = date[0] + t[k]
+
+        B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
+
+        spot_x = np.concatenate((spot_mask[time]['xp'], spot_mask[time]['xn']))
+        spot_y = np.concatenate((spot_mask[time]['yp'], spot_mask[time]['yn']))
 
         spot = spot_x[np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))]
 
-        B = abs(data[i][j])
-
         ff = 0.0
 
-        if np.shape(spot) != (0, ):
+        if np.shape(spot) != (0,):
 
             helper = B - B_spot * len(spot) * 0.1 * 0.1
 
@@ -88,15 +103,15 @@ def scan_mag(date):
 
                 ff = (1 - len(spot) * 0.1 * 0.1) * helper / B_sat
 
-        if np.shape(spot) == (0, ) and B < B_sat:
+        if np.shape(spot) == (0,) and B < B_sat:
 
             ff = B / B_sat
 
-        if np.shape(spot) == (0, ) and B >= B_sat:
+        if np.shape(spot) == (0,) and B >= B_sat:
 
             ff = 1.0
 
-        x_rot = (j + 13.28 * (date - start)) % 359
+        x_rot = (j + 13.28 * (time - start)) % 359
 
         x_pos = 180.0 - x_rot
 
@@ -109,46 +124,61 @@ def scan_mag(date):
 
         vis = np.cos(distance * conv)
 
-        idx = np.where((vis > mu_low) & (vis <= mu_up))
+        l = np.where((vis > mu_low) & (vis <= mu_up))
 
-        r[idx] += ff * vis * np.cos(y_pos * conv)
+        r[k, l] += ff * vis * np.cos(y_pos * conv)
 
         if distance <= 90.0:
 
-            visibility += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
+            v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
                     
     r /= norm
 
-    visibility /= norm
+    v /= norm
 
-    return date, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], sum(r), visibility
+    return t + date[0], r, v
 
-#magnetograms = sorted(glob.glob(mag_dir + 'CalcMagnetogram.2000.*'))
+sdate = math.floor(min(times))
+edate = math.ceil(max(times))
 
-# cycle 22
-sdate = 104696
-edate = 108327
+dates = [[i, i + 1] for i in range(sdate, edate)]
 
-dates = [i for i in range(sdate, edate + 1)]
+f = open('./out/' + 'D' + D + '_Bsat' + str(B_sat), 'w')
 
-f = open('ff_fac_D' + D + '_Bsat' + str(B_sat), 'w')
-
-fmt = '%i ' + '%10.6f ' * 12 + '%10.6f\n'
+#fmt = '%i ' + '%10.6f ' * 12 + '%10.6f\n'
+fmt = '%9.2f ' + '%10.6f ' * 12 + '%10.6f\n'
 
 with Pool(processes = nproc) as p:
 
-    maximum = len(magnetograms)
+    maximum = len(dates)
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Masking faculae, nproc = ' + str(nproc), \
+              desc = 'Faculae, nproc = ' + str(nproc), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)
 
-        for _, result in enumerate(results):
+        for result in results:
 
-            f.write(fmt % result)
+            t, r, v = result
+
+            for k in range(cad):
+
+                f.write(fmt % (t[k], \
+                               r[k, 0], \
+                               r[k, 1], \
+                               r[k, 2], \
+                               r[k, 3], \
+                               r[k, 4], \
+                               r[k, 5], \
+                               r[k, 6], \
+                               r[k, 7], \
+                               r[k, 8], \
+                               r[k, 9], \
+                               r[k, 10], \
+                               sum(r[k, :]), \
+                               v[k]))
 
             pbar.update()
 

@@ -2,6 +2,7 @@
 *.txt
 *.npy
 *.out
+out/
 mag_*/
 mag/
 __pycache__/

@@ -12,36 +12,38 @@ from multiprocessing import Pool
 importlib.reload(auxfunc)
 importlib.reload(mask)
 
-nproc = 4
+def get_args(args):
 
-inp = 'input_C22_26.5'
+    nproc = 4
 
-args = sys.argv[1:]
+    inp = 'C22_26.5'
 
-for i, arg in enumerate(args):
+    for i, arg in enumerate(args):
 
-    if arg == '--inp':
+        if arg == '--inp':
 
-        inp = args[i + 1]
+            inp = args[i + 1]
 
-    if arg == '--np':
+        if arg == '--np':
 
-        nproc = int(args[i + 1])
+            nproc = int(args[i + 1])
 
-D = inp.split('_')[2]
+    return inp, nproc
 
-#sys.exit()
+inp, nproc = get_args(sys.argv[1:])
+
+D = inp.split('_')[1]
 
 factor = 10
 
-xvalues = np.around(np.linspace(0.0, 359.0, num = 360 * factor), decimals = 1)
-yvalues = np.around(np.linspace(0.0, 180.0, num = 181 * factor), decimals = 1)
+xval = np.around(np.linspace(0.0, 359.0, num = 360 * factor), decimals = 1)
+yval = np.around(np.linspace(0.0, 180.0, num = 181 * factor), decimals = 1)
 
-x, y = np.meshgrid(xvalues, yvalues)
+x, y = np.meshgrid(xval, yval)
 
 conv = np.pi / 180.0
 
-data = np.loadtxt(inp)
+data = np.loadtxt('./inp/' + inp)
 
 long_pos = data[:, 2]
 long_neg = data[:, 4]
@@ -52,8 +54,6 @@ lat_neg = data[:, 3]
 grid_max = 359
 
 def line_contrib(i):
-
-#    date = data[i, 0]
 
     r = np.sqrt(data[i, 5])
 
@@ -75,29 +75,25 @@ def line_contrib(i):
     x_pos, y_pos = mask.spot_patch(x, y, x_pos_min, x_pos_max, y_pos_min, y_pos_max, grid_max)
     x_neg, y_neg = mask.spot_patch(x, y, x_neg_min, x_neg_max, y_neg_min, y_neg_max, grid_max)
 
-#    return date, x_pos, y_pos, x_neg, y_neg
     return x_pos, y_pos, x_neg, y_neg
 
-#sdate = min(data[:, 0])
-#edate = max(data[:, 0])
+sdate = min(data[:, 0])
+edate = max(data[:, 0])
 
-times = data[:, 0]
+step = data[1, 0] - data[0, 0]
+
+times = np.linspace(sdate, edate, int((edate - sdate) / step) + 1)
 
 spot_mask = {}
 
-#for date in range(sdate, edate + 1):
 for time in times:
 
     spot_mask[time] = {'xp': np.array([]), 'yp': np.array([]), 'xn': np.array([]), 'yn': np.array([])}
 
-#sys.exit()
-
 with Pool(processes = nproc) as p:
 
-    maximum = len(times)
+    maximum = len(data)
 
-#    n_chunks = math.ceil(maximum / nproc)
-#    n_chunks = 100
     n_chunks = 1
 
     with tqdm(total = maximum, \
@@ -109,10 +105,9 @@ with Pool(processes = nproc) as p:
 
         for i, result in enumerate(results):
 
-#            date, x_pos, y_pos, x_neg, y_neg = result
             x_pos, y_pos, x_neg, y_neg = result
 
-            time = times[i]
+            time = data[i, 0]
 
             spot_mask[time]['xp'] = np.concatenate((spot_mask[time]['xp'], x_pos))
             spot_mask[time]['yp'] = np.concatenate((spot_mask[time]['yp'], y_pos))
@@ -125,5 +120,5 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
-spot_mask = np.load('spot_mask_D' + D + '.npy').item()
+np.save('./out/spot_mask_D' + D + '.npy', spot_mask)
 

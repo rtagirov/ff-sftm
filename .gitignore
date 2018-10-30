@@ -2,6 +2,7 @@
 *.txt
 *.npy
 *.out
+.nfs*
 out/
 mag_*/
 mag/

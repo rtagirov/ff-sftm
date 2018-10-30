@@ -39,11 +39,11 @@ def get_args(args):
 
     return D, B_sat, nproc
 
-mag_dir = './mag/'
+mag = './mag/'
 
-if not os.path.isdir(mag_dir):
+if not os.path.isdir(mag):
 
-    auxsys.abort('The directory with magnetograms is missing. Abort.')
+    auxsys.abort('The directory with magnetograms is missing.')
 
 D, B_sat, nproc = get_args(sys.argv[1:])
 
@@ -71,8 +71,8 @@ start = 170049
 
 def scan_mag(date):
 
-    B0 = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date[0]))
-    B1 = np.loadtxt(mag_dir + 'CalcMagnetogram.2000.' + str(date[1]))
+    B0 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[0]))
+    B1 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[1]))
 
     v = np.zeros(cad)
 
@@ -132,11 +132,11 @@ def scan_mag(date):
 
             v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
                     
-    r /= norm
+#    r /= norm
 
-    v /= norm
+#    v /= norm
 
-    return t + date[0], r, v
+    return t + date[0], r / norm, v / norm
 
 sdate = math.floor(min(times))
 edate = math.ceil(max(times))
@@ -154,7 +154,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Faculae, nproc = ' + str(nproc), \
+              desc = 'Faculae, Bsat = ' + str(B_sat), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)

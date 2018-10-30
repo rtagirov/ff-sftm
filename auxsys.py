@@ -4,9 +4,13 @@ from sys import exit
 
 import time
 
-def abort(message = 'Abort.'):
+def abort(msg = 'Abort.'):
 
-    print('\n' + message)
+    if msg != 'Abort.':
+
+        msg = msg + ' Abort.'
+
+    print('\n' + msg)
 
     exit()
 

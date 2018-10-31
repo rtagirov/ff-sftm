@@ -2,7 +2,7 @@ import importlib
 import auxfunc
 import mask
 import sys
-import math
+import os
 
 import numpy as np
 
@@ -120,5 +120,9 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
-np.save('./out/spot_mask_D' + D + '.npy', spot_mask)
+fname = './out/spot_mask_D' + D + '.npy'
+
+np.save(fname, spot_mask)
+
+os.system('chmod 754 ' + fname)
 

@@ -2,6 +2,8 @@ import os
 import sys
 import auxsys
 import importlib
+import itertools
+import socket
 
 import numpy as np
 
@@ -11,32 +13,69 @@ def get_args(args):
 
     nproc = '4'
 
+    ar = 'spots'
+
     for i, arg in enumerate(args):
 
         if arg == '--np':
 
             nproc = args[i + 1]
 
-    return nproc
+        if arg == '--ar':
 
-nproc = get_args(sys.argv[1:])
+            ar = args[i + 1]
 
-decay_rates = [26.5, 30.9, 41.3, 47]
+    return nproc, ar
 
-B_sat = np.arange(200., 550., 50.)
+nproc, ar = get_args(sys.argv[1:])
 
-for rate in decay_rates:
+D = [26.5, 30.9, 41.3, 47.0]
 
-    filename = 'C22_' + str(rate)
+if ar == 's':
 
-    if os.path.isfile('./inp/' + filename):
+    for d in D:
 
-        os.system('python spot.py --np ' + nproc + ' --inp ' + filename)
+        fname = 'C22_' + str(d)
+
+        if not os.path.isfile('./inp/' + fname):
+
+            auxsys.abort('Spot input file not found.')
+
+        os.system('python spot.py --np ' + nproc + ' --inp ' + fname)
+
+elif ar == 'f':
+
+    B_sat = np.arange(200., 550., 50.)
+
+    pairs = list(itertools.product(D, B_sat))
+
+    server = socket.gethostname()
+
+    if server == 'pulpo':
+
+        pairs = pairs[0 : 7]
+
+    elif server == 'mojo':
+
+        pairs = pairs[7 : 14]
+
+    elif server == 'helios1':
+
+        pairs = pairs[14 : 21]
+
+    elif server == 'helios2':
+
+        pairs = pairs[21 : 28]
 
     else:
 
-        auxsys.abort('Spot input file not found.')
+        auxsys.abort('Server not recognized.')
 
-    for B in B_sat:
+    for p in pairs:
 
-        os.system('python facula.py --np ' + nproc + ' --D ' + str(rate) + ' --Bsat ' + str(B))
+        os.system('python facula.py --np ' + nproc + ' --D ' + str(p[0]) + ' --Bsat ' + str(p[1]))
+
+else:
+
+    auxsys.abort('Active region type not recognized.')
+

@@ -143,9 +143,10 @@ edate = math.ceil(max(times))
 
 dates = [[i, i + 1] for i in range(sdate, edate)]
 
-f = open('./out/' + 'D' + D + '_Bsat' + str(B_sat), 'w')
+fname = './out/' + D + '_' + str(B_sat)
 
-#fmt = '%i ' + '%10.6f ' * 12 + '%10.6f\n'
+f = open(fname, 'w')
+
 fmt = '%9.2f ' + '%10.6f ' * 12 + '%10.6f\n'
 
 with Pool(processes = nproc) as p:
@@ -154,7 +155,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Faculae, Bsat = ' + str(B_sat), \
+              desc = 'Faculae, D = ' + D + ', Bsat = ' + str(B_sat), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)
@@ -186,4 +187,6 @@ with Pool(processes = nproc) as p:
     p.join()
 
 f.close()
+
+os.system('chmod 754 ' + fname)
 

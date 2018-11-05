@@ -39,11 +39,15 @@ def get_args(args):
 
     return D, B_sat, nproc
 
-mag = './mag/'
+mag = './inp/mag/'
 
 if not os.path.isdir(mag):
 
-    auxsys.abort('The directory with magnetograms is missing.')
+    auxsys.abort('The magnetograms directory is missing.')
+
+if not os.listdir(mag):
+
+    auxsys.abort('The magnetograms directory is empty.')
 
 D, B_sat, nproc = get_args(sys.argv[1:])
 
@@ -151,7 +155,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'D = ' + D + ', Bsat = ' + str(B_sat), \
+              desc = 'D = ' + D + ', Bsat = ' + str(int(B_sat)), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)

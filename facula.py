@@ -61,11 +61,9 @@ mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
 spot_mask = np.load('./out/spot_mask_D' + D + '.npy').item()
 
-times = list(spot_mask.keys())
+times = np.array(list(spot_mask.keys()))
 
-step = times[1] - times[0]
-
-cad = int(1.0 / step)
+#step = times[1] - times[0]
 
 start = 170049
 
@@ -74,78 +72,76 @@ def scan_mag(date):
     B0 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[0]))
     B1 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[1]))
 
-    v = np.zeros(cad)
+#    t = np.arange(0.0, 1.0, step)
 
-    r = np.zeros((cad, 11))
+    t = times[np.where((times >= date[0]) & (times < date[1]))] - date[0]
 
-#    B = np.zeros((cad,) + mag0.shape)
+    v = np.zeros(len(t))
 
-    t = np.linspace(0.0, 1.0, cad, endpoint = False)
+    r = np.zeros((len(t), 11))
 
-    for k, i, j in itertools.product(range(cad), range(180), range(360)):
+    for k in range(len(t)):
 
         time = date[0] + t[k]
-
-        B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
 
         spot_x = np.concatenate((spot_mask[time]['xp'], spot_mask[time]['xn']))
         spot_y = np.concatenate((spot_mask[time]['yp'], spot_mask[time]['yn']))
 
-        spot = spot_x[np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))]
+        for i, j in itertools.product(range(180), range(360)):
 
-        ff = 0.0
+            B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
 
-        if np.shape(spot) != (0,):
+#            spot = spot_x[np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))]
+            n = len(np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))[0])
 
-            helper = B - B_spot * len(spot) * 0.1 * 0.1
+            ff = 0.0
 
-            if helper > 0:
+            if n != 0:
 
-                ff = (1 - len(spot) * 0.1 * 0.1) * helper / B_sat
+                helper = B - B_spot * n * 0.1 * 0.1
 
-        if np.shape(spot) == (0,) and B < B_sat:
+                if helper > 0:
 
-            ff = B / B_sat
+                    ff = (1 - n * 0.1 * 0.1) * helper / B_sat
 
-        if np.shape(spot) == (0,) and B >= B_sat:
+            elif n == 0 and B < B_sat:
 
-            ff = 1.0
+                ff = B / B_sat
 
-        x_rot = (j + 13.28 * (time - start)) % 359
+            elif n == 0 and B >= B_sat:
 
-        x_pos = 180.0 - x_rot
+                ff = 1.0
 
-        y_pos = 90.0 - i
+            x_rot = (j + 13.28 * (time - start)) % 359
 
-        delta_lambda = abs(x_pos - x_c)
+            x_pos = 180.0 - x_rot
 
-        distance = np.arccos(np.sin(y_c * conv) * np.sin(y_pos * conv) + 
-                             np.cos(y_c * conv) * np.cos(y_pos * conv) * np.cos(delta_lambda * conv)) / conv
+            y_pos = 90.0 - i
 
-        vis = np.cos(distance * conv)
+            delta_lambda = abs(x_pos - x_c)
 
-        l = np.where((vis > mu_low) & (vis <= mu_up))
+            distance = np.arccos(np.sin(y_c * conv) * np.sin(y_pos * conv) +
+                                 np.cos(y_c * conv) * np.cos(y_pos * conv) * np.cos(delta_lambda * conv)) / conv
 
-        r[k, l] += ff * vis * np.cos(y_pos * conv)
+            vis = np.cos(distance * conv)
 
-        if distance <= 90.0:
+            l = np.where((vis > mu_low) & (vis <= mu_up))
 
-            v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
-                    
-#    r /= norm
+            r[k, l] += ff * vis * np.cos(y_pos * conv)
 
-#    v /= norm
+            if distance <= 90.0:
+
+                v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
 
     return t + date[0], r / norm, v / norm
 
-sdate = math.floor(min(times))
-edate = math.ceil(max(times))
+dates = [[i, i + 1] for i in range(math.floor(min(times)), math.ceil(max(times)) + 1)]
 
-dates = [[i, i + 1] for i in range(sdate, edate)]
+fpath = './out/' + D + '_' + str(int(B_sat))
 
-fname = './out/' + D + '_' + str(B_sat)
+f = open(fpath, 'w')
 
-f = open(fname, 'w')
+os.system('chmod 754 ' + fpath)
 
 fmt = '%9.2f ' + '%10.6f ' * 12 + '%10.6f\n'
 
@@ -155,7 +151,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Faculae, D = ' + D + ', Bsat = ' + str(B_sat), \
+              desc = 'D = ' + D + ', Bsat = ' + str(B_sat), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)
@@ -164,7 +160,7 @@ with Pool(processes = nproc) as p:
 
             t, r, v = result
 
-            for k in range(cad):
+            for k in range(len(t)):
 
                 f.write(fmt % (t[k], \
                                r[k, 0], \
@@ -187,6 +183,4 @@ with Pool(processes = nproc) as p:
     p.join()
 
 f.close()
-
-os.system('chmod 754 ' + fname)
 

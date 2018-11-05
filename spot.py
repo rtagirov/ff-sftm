@@ -1,6 +1,7 @@
 import importlib
 import auxfunc
 import mask
+import math
 import sys
 import os
 
@@ -77,12 +78,14 @@ def line_contrib(i):
 
     return x_pos, y_pos, x_neg, y_neg
 
-sdate = min(data[:, 0])
-edate = max(data[:, 0])
+#sdate = math.floor(min(data[:, 0]))
+#edate = math.ceil(max(data[:, 0]))
 
 step = data[1, 0] - data[0, 0]
 
-times = np.linspace(sdate, edate, int((edate - sdate) / step) + 1)
+#times = np.linspace(sdate, edate, int((edate - sdate) / step) + 1)
+#times = np.arange(sdate, edate + step, step)
+times = np.arange(min(data[:, 0]), max(data[:, 0]) + step, step)
 
 spot_mask = {}
 
@@ -98,7 +101,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'Spots, D = ' + str(D), \
+              desc = 'D = ' + str(D), \
               position = 0) as pbar:
 
         results = p.imap(line_contrib, range(maximum), chunksize = n_chunks)
@@ -120,9 +123,5 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
-fname = './out/spot_mask_D' + D + '.npy'
-
-np.save(fname, spot_mask)
-
-os.system('chmod 754 ' + fname)
+np.save('./out/spot_mask_D' + D + '.npy', spot_mask)
 

@@ -21,17 +21,17 @@ def get_args(args):
 
     for i, arg in enumerate(args):
 
-        if arg == '--inp':
-
-            inp = args[i + 1]
-
         if arg == '--np':
 
             nproc = int(args[i + 1])
 
-    return inp, nproc
+        if arg == '--inp':
 
-inp, nproc = get_args(sys.argv[1:])
+            inp = args[i + 1]
+
+    return nproc, inp
+
+nproc, inp = get_args(sys.argv[1:])
 
 D = inp.split('_')[1]
 
@@ -78,13 +78,8 @@ def line_contrib(i):
 
     return x_pos, y_pos, x_neg, y_neg
 
-#sdate = math.floor(min(data[:, 0]))
-#edate = math.ceil(max(data[:, 0]))
-
 step = data[1, 0] - data[0, 0]
 
-#times = np.linspace(sdate, edate, int((edate - sdate) / step) + 1)
-#times = np.arange(sdate, edate + step, step)
 times = np.arange(min(data[:, 0]), max(data[:, 0]) + step, step)
 
 spot_mask = {}

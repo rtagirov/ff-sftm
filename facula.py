@@ -17,27 +17,33 @@ importlib.reload(auxsys)
 
 def get_args(args):
 
+    nproc = 4
+
     D = '26.5'
 
     B_sat = 484.0
 
-    nproc = 4
+    B_spot = 1000.0
 
     for i, arg in enumerate(args):
-
-        if arg == '--Bsat':
-
-            B_sat = float(args[i + 1])
-
-        if arg == '--D':
-
-            D = args[i + 1]
 
         if arg == '--np':
 
             nproc = int(args[i + 1])
 
-    return D, B_sat, nproc
+        if arg == '--D':
+
+            D = args[i + 1]
+
+        if arg == '--Bsat':
+
+            B_sat = float(args[i + 1])
+
+        if arg == '--Bspot':
+
+            B_spot = float(args[i + 1])
+
+    return nproc, D, B_sat, B_spot
 
 mag = './inp/mag/'
 
@@ -49,7 +55,7 @@ if not os.listdir(mag):
 
     auxsys.abort('The magnetograms directory is empty.')
 
-D, B_sat, nproc = get_args(sys.argv[1:])
+nproc, D, B_sat, B_spot = get_args(sys.argv[1:])
 
 conv = np.pi / 180.0
 
@@ -58,8 +64,6 @@ norm = 90 * 90 * 4 / np.pi**2 * np.pi
 x_c = 0.0
 y_c = 0.0
 
-B_spot = 1000.0
-
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
@@ -67,16 +71,12 @@ spot_mask = np.load('./out/spot_mask_D' + D + '.npy').item()
 
 times = np.array(list(spot_mask.keys()))
 
-#step = times[1] - times[0]
-
 start = 170049
 
 def scan_mag(date):
 
     B0 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[0]))
     B1 = np.loadtxt(mag + 'CalcMagnetogram.2000.' + str(date[1]))
-
-#    t = np.arange(0.0, 1.0, step)
 
     t = times[np.where((times >= date[0]) & (times < date[1]))] - date[0]
 
@@ -95,7 +95,6 @@ def scan_mag(date):
 
             B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
 
-#            spot = spot_x[np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))]
             n = len(np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))[0])
 
             ff = 0.0
@@ -141,7 +140,7 @@ def scan_mag(date):
 
 dates = [[i, i + 1] for i in range(math.floor(min(times)), math.ceil(max(times)) + 1)]
 
-fpath = './out/' + D + '_' + str(int(B_sat))
+fpath = './out/' + D + '_' + str(int(B_sat)) + '_' + str(int(B_spot))
 
 f = open(fpath, 'w')
 
@@ -155,7 +154,9 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'D = ' + D + ', Bsat = ' + str(int(B_sat)), \
+              desc = 'D = ' + D + \
+                     ', Bsat = ' + str(int(B_sat)) + \
+                     ', Bspot = ' + str(int(B_spot)), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)

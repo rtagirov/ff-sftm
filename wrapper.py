@@ -29,7 +29,8 @@ def get_args(args):
 
 nproc, ar = get_args(sys.argv[1:])
 
-D = [26.5, 30.9, 41.3, 47.0]
+#D = [26.5, 30.9, 41.3, 47.0]
+D = [26.5, 47.0]
 
 if ar == 's':
 
@@ -45,35 +46,42 @@ if ar == 's':
 
 elif ar == 'f':
 
-    B_sat = np.arange(200., 550., 50.)
+#    B_sat = np.arange(200., 550., 50.)
+    B_sat = np.array([200.0, 500.0,])
 
-    pairs = list(itertools.product(D, B_sat))
+    B_spot = np.array([800.0, 1200.0,])
+
+    psets = list(itertools.product(D, B_sat, B_spot))
 
     server = socket.gethostname()
 
     if server == 'pulpo':
 
-        pairs = pairs[0 : 7]
+#        psets = psets[0 : 7]
+        psets = psets[0 : 2]
 
     elif server == 'mojo':
 
-        pairs = pairs[7 : 14]
+        psets = psets[2 : 4]
 
     elif server == 'helios1':
 
-        pairs = pairs[14 : 21]
+        psets = psets[4 : 6]
 
     elif server == 'helios2':
 
-        pairs = pairs[21 : 28]
+        psets = psets[6 : 8]
 
     else:
 
         auxsys.abort('Server not recognized.')
 
-    for p in pairs:
+    for s in psets:
 
-        os.system('python facula.py --np ' + nproc + ' --D ' + str(p[0]) + ' --Bsat ' + str(p[1]))
+        os.system('python facula.py --np ' + nproc + \
+                                  ' --D ' + str(s[0]) + \
+                                  ' --Bsat ' + str(s[1]) + \
+                                  ' --Bspot ' + str(s[2]))
 
 else:
 

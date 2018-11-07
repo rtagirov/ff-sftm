@@ -61,24 +61,23 @@ elif ar == 'f':
 
     if server == 'pulpo':
 
-#        psets = psets[0 : 7]
-        psets = psets[0 : 2]
+        psets = psets[8]
 
     elif server == 'mojo':
 
-        psets = psets[2 : 4]
+        psets = psets[4 : 6]
 
     elif server == 'helios1':
 
-        psets = psets[4 : 6]
+        psets = psets[6 : 7]
 
     elif server == 'helios2':
 
-        psets = psets[6 : 8]
+        psets = psets[7 : 8]
 
     elif server == 'ph-rtagirov':
 
-        psets = psets[8]
+        psets = psets[0 : 4]
 
     else:
 

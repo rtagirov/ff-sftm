@@ -30,7 +30,8 @@ def get_args(args):
 nproc, ar = get_args(sys.argv[1:])
 
 #D = [26.5, 30.9, 41.3, 47.0]
-D = [26.5, 47.0]
+#D = [26.5, 47.0]
+D = [60, 80, 100]
 
 if ar == 's':
 
@@ -47,10 +48,13 @@ if ar == 's':
 elif ar == 'f':
 
 #    B_sat = np.arange(200., 550., 50.)
-    B_sat = np.array([200.0, 500.0,])
+#    B_sat = np.array([200.0, 500.0,])
+    B_sat = np.array([400.0, 450.0, 500.0])
 
-    B_spot = np.array([800.0, 1200.0,])
+#    B_spot = np.array([800.0, 1200.0,])
+    B_spot = np.array([1000.0])
 
+#    psets = list(itertools.product(D, B_sat, B_spot))
     psets = list(itertools.product(D, B_sat, B_spot))
 
     server = socket.gethostname()
@@ -71,6 +75,10 @@ elif ar == 'f':
     elif server == 'helios2':
 
         psets = psets[6 : 8]
+
+    elif server == 'ph-rtagirov':
+
+        psets = psets[8]
 
     else:
 

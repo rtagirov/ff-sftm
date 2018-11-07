@@ -67,7 +67,7 @@ y_c = 0.0
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
-spot_mask = np.load('./out/spot_mask_D' + D + '.npy').item()
+spot_mask = np.load('./out/' + D + '.npy').item()
 
 times = np.array(list(spot_mask.keys()))
 
@@ -95,7 +95,11 @@ def scan_mag(date):
 
             B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
 
-            n = len(np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))[0])
+            n = 0
+
+            if len(spot_x) != 0:
+
+                n = len(np.where((spot_x >= j) & (spot_x < j + 1) & (spot_y >= i) & (spot_y < i + 1))[0])
 
             ff = 0.0
 

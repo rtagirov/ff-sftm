@@ -98,7 +98,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'D = ' + str(D), \
+              desc = C + ', D = ' + str(D), \
               position = 0) as pbar:
 
         results = p.imap(line_contrib, range(maximum), chunksize = n_chunks)

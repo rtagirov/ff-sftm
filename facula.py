@@ -164,7 +164,7 @@ with Pool(processes = nproc) as p:
 
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
-              desc = 'D = ' + D + \
+              desc = C + ', D = ' + D + \
                      ', Bsat = ' + str(int(B_sat)) + \
                      ', Bspot = ' + str(int(B_spot)), \
               position = 0) as pbar:

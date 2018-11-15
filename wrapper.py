@@ -66,23 +66,28 @@ elif ar == 'f':
     if server == 'pulpo':
 
 #        psets = [psets[8]]
-        psets = psets[4 : 6]
+        psets = psets[8 : 9]
 
     elif server == 'mojo':
 
-        psets = psets[6 : 8]
+#        psets = psets[6 : 8]
+        print('lalal')
 
     elif server == 'helios1':
 
-        psets = psets[8 : 10]
+        psets = psets[9 : 11]
 
     elif server == 'helios2':
 
-        psets = psets[10 : 12]
+        psets = psets[11 : 12]
+
+    elif server == 'Tagirov-SLM8':
+
+        psets = psets[6 : 8]
 
     elif server == 'ph-rtagirov':
 
-        psets = psets[0 : 4]
+        psets = psets[0 : 6]
 
     else:
 

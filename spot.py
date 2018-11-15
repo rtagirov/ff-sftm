@@ -33,6 +33,8 @@ def get_args(args):
 
 nproc, inp = get_args(sys.argv[1:])
 
+C = inp.split('_')[0]
+
 D = inp.split('_')[1]
 
 factor = 10
@@ -118,5 +120,5 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
-np.save('./out/' + D + '.npy', spot_mask)
+np.save('./out/' + C + '_D' + D + '.npy', spot_mask)
 

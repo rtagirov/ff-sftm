@@ -31,13 +31,16 @@ nproc, ar = get_args(sys.argv[1:])
 
 #D = [26.5, 30.9, 41.3, 47.0]
 #D = [26.5, 47.0]
-D = [60, 80, 100]
+#D = [60, 80, 100]
+C = ['C22', 'C23']
+
+D = [80, 100]
 
 if ar == 's':
 
-    for d in D:
+    for c, d in itertools.product(C, D):
 
-        fname = 'C22_' + str(d)
+        fname = c + '_' + str(d)
 
         if not os.path.isfile('./inp/' + fname):
 
@@ -49,31 +52,33 @@ elif ar == 'f':
 
 #    B_sat = np.arange(200., 550., 50.)
 #    B_sat = np.array([200.0, 500.0,])
-    B_sat = np.array([400.0, 450.0, 500.0])
+#    B_sat = np.array([400.0, 450.0, 500.0])
+    B_sat = np.array([500.0])
 
 #    B_spot = np.array([800.0, 1200.0,])
-    B_spot = np.array([1000.0])
+    B_spot = np.array([1000.0, 2000.0, 4000.0])
 
 #    psets = list(itertools.product(D, B_sat, B_spot))
-    psets = list(itertools.product(D, B_sat, B_spot))
+    psets = list(itertools.product(C, D, B_sat, B_spot))
 
     server = socket.gethostname()
 
     if server == 'pulpo':
 
-        psets = psets[8]
+#        psets = [psets[8]]
+        psets = psets[4 : 6]
 
     elif server == 'mojo':
 
-        psets = psets[4 : 6]
+        psets = psets[6 : 8]
 
     elif server == 'helios1':
 
-        psets = psets[6 : 7]
+        psets = psets[8 : 10]
 
     elif server == 'helios2':
 
-        psets = psets[7 : 8]
+        psets = psets[10 : 12]
 
     elif server == 'ph-rtagirov':
 
@@ -85,10 +90,10 @@ elif ar == 'f':
 
     for s in psets:
 
-        os.system('python facula.py --np ' + nproc + \
-                                  ' --D ' + str(s[0]) + \
-                                  ' --Bsat ' + str(s[1]) + \
-                                  ' --Bspot ' + str(s[2]))
+        os.system('python facula.py --np ' + nproc + ' --C ' + s[0] + \
+                                                     ' --D ' + str(s[1]) + \
+                                                     ' --Bsat ' + str(s[2]) + \
+                                                     ' --Bspot ' + str(s[3]))
 
 else:
 

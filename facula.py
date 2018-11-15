@@ -19,6 +19,8 @@ def get_args(args):
 
     nproc = 4
 
+    C = 'C22'
+
     D = '26.5'
 
     B_sat = 484.0
@@ -30,6 +32,10 @@ def get_args(args):
         if arg == '--np':
 
             nproc = int(args[i + 1])
+
+        if arg == '--C':
+
+            C = args[i + 1]
 
         if arg == '--D':
 
@@ -43,7 +49,7 @@ def get_args(args):
 
             B_spot = float(args[i + 1])
 
-    return nproc, D, B_sat, B_spot
+    return nproc, C, D, B_sat, B_spot
 
 mag = './inp/mag/'
 
@@ -55,7 +61,7 @@ if not os.listdir(mag):
 
     auxsys.abort('The magnetograms directory is empty.')
 
-nproc, D, B_sat, B_spot = get_args(sys.argv[1:])
+nproc, C, D, B_sat, B_spot = get_args(sys.argv[1:])
 
 conv = np.pi / 180.0
 
@@ -67,7 +73,7 @@ y_c = 0.0
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
-spot_mask = np.load('./out/' + D + '.npy').item()
+spot_mask = np.load('./out/' + C + '_D' + D + '.npy').item()
 
 times = np.array(list(spot_mask.keys()))
 
@@ -144,7 +150,7 @@ def scan_mag(date):
 
 dates = [[i, i + 1] for i in range(math.floor(min(times)), math.ceil(max(times)) + 1)]
 
-fpath = './out/' + D + '_' + str(int(B_sat)) + '_' + str(int(B_spot))
+fpath = './out/' + C + '_' + D + '_' + str(int(B_sat)) + '_' + str(int(B_spot))
 
 f = open(fpath, 'w')
 

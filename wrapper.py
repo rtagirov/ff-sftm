@@ -78,7 +78,8 @@ elif ar == 'f':
 
     elif server == 'helios1':
 
-        psets = [psets[2]]
+#        psets = [psets[2]]
+         pass
 
     elif server == 'helios2':
 
@@ -92,7 +93,8 @@ elif ar == 'f':
 
     elif server == 'ph-rtagirov':
 
-        psets = psets[0 : 1]
+#        psets = psets[0 : 1]
+        psets = psets
 #        pass
 
     else:

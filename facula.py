@@ -208,9 +208,9 @@ with Pool(processes = nproc) as p:
                                r[k, 9], \
                                r[k, 10], \
                                sum(r[k, :]), \
-                               v[k]), \
+                               v[k], \
                                B_tot[k], \
-                               h_tot[k])
+                               h_tot[k]))
 
             pbar.update()
 

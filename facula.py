@@ -27,6 +27,8 @@ def get_args(args):
 
     B_spot = 1000.0
 
+    y_c = 0.0
+
     for i, arg in enumerate(args):
 
         if arg == '--np':
@@ -49,7 +51,11 @@ def get_args(args):
 
             B_spot = float(args[i + 1])
 
-    return nproc, C, D, B_sat, B_spot
+        if arg == '--i':
+
+            y_c = float(args[i + 1])
+
+    return nproc, C, D, B_sat, B_spot, y_c
 
 mag = './inp/mag/'
 
@@ -61,14 +67,13 @@ if not os.listdir(mag):
 
     auxsys.abort('The magnetograms directory is empty.')
 
-nproc, C, D, B_sat, B_spot = get_args(sys.argv[1:])
+nproc, C, D, B_sat, B_spot, y_c = get_args(sys.argv[1:])
 
 conv = np.pi / 180.0
 
 norm = 90 * 90 * 4 / np.pi**2 * np.pi
 
 x_c = 0.0
-y_c = 0.0
 
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
@@ -97,6 +102,10 @@ def scan_mag(date):
         spot_x = np.concatenate((spot_mask[time]['xp'], spot_mask[time]['xn']))
         spot_y = np.concatenate((spot_mask[time]['yp'], spot_mask[time]['yn']))
 
+        B_tot = 0.0
+
+        h_tot = 0.0
+
         for i, j in itertools.product(range(180), range(360)):
 
             B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
@@ -113,9 +122,16 @@ def scan_mag(date):
 
                 helper = B - B_spot * n * 0.1 * 0.1
 
-                if helper > 0:
+                h_tot += B - helper
 
-                    ff = (1 - n * 0.1 * 0.1) * helper / B_sat
+                if helper > 0 and helper <= B_sat:
+
+#                    ff = (1 - n * 0.1 * 0.1) * helper / B_sat
+                    ff = helper / B_sat
+
+                if helper > B_sat:
+
+                    ff = (1 - n * 0.1 * 0.1)
 
             elif n == 0 and B < B_sat:
 
@@ -146,17 +162,19 @@ def scan_mag(date):
 
                 v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
 
-    return t + date[0], r / norm, v / norm
+            B_tot += B
+
+    return t + date[0], r / norm, v / norm, B_tot, h_tot
 
 dates = [[i, i + 1] for i in range(math.floor(min(times)), math.ceil(max(times)) + 1)]
 
-fpath = './out/' + C + '_' + D + '_' + str(int(B_sat)) + '_' + str(int(B_spot))
+fpath = './out/' + C + '_' + D + '_' + str(int(B_sat)) + '_' + str(int(B_spot)) + '_' + str(int(90 - y_c))
 
 f = open(fpath, 'w')
 
 os.system('chmod 754 ' + fpath)
 
-fmt = '%9.2f ' + '%10.6f ' * 12 + '%10.6f\n'
+fmt = '%9.2f ' + '%10.6f ' * 14 + '%10.6f\n'
 
 with Pool(processes = nproc) as p:
 
@@ -165,15 +183,16 @@ with Pool(processes = nproc) as p:
     with tqdm(total = maximum, \
               ncols = auxfunc.term_width(), \
               desc = C + ', D = ' + D + \
-                     ', Bsat = ' + str(int(B_sat)) + \
-                     ', Bspot = ' + str(int(B_spot)), \
+              ', Bsat = ' + str(int(B_sat)) + \
+              ', Bspot = ' + str(int(B_spot)) + \
+              ', i = ' + str(int(90 - y_c)), \
               position = 0) as pbar:
 
         results = p.imap(scan_mag, dates)
 
         for result in results:
 
-            t, r, v = result
+            t, r, v, B_tot, h_tot = result
 
             for k in range(len(t)):
 
@@ -190,7 +209,9 @@ with Pool(processes = nproc) as p:
                                r[k, 9], \
                                r[k, 10], \
                                sum(r[k, :]), \
-                               v[k]))
+                               v[k]), \
+                               B_tot, \
+                               h_tot)
 
             pbar.update()
 

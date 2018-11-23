@@ -32,9 +32,11 @@ nproc, ar = get_args(sys.argv[1:])
 #D = [26.5, 30.9, 41.3, 47.0]
 #D = [26.5, 47.0]
 #D = [60, 80, 100]
-C = ['C22', 'C23']
+#C = ['C22', 'C23']
+C = ['C22']
 
-D = [80, 100]
+#D = [80, 100]
+D = [80]
 
 if ar == 's':
 
@@ -66,29 +68,32 @@ elif ar == 'f':
     if server == 'pulpo':
 
 #        psets = [psets[8]]
-        psets = psets[8 : 9]
+#        psets = psets[8 : 9]
+        pass
 
     elif server == 'mojo':
 
-#        psets = psets[6 : 8]
-        print('lalala')
+#        psets = psets[0 : 3]
+        pass
 
     elif server == 'helios1':
 
-        psets = psets[9 : 11]
+        psets = [psets[2]]
 
     elif server == 'helios2':
 
-        psets = psets[11 : 12]
+#        psets = psets[11 : 12]
+        pass
 
     elif server == 'Tagirov-SLM8':
 
 #        psets = psets[6 : 8]
-        print('lalala')
+        pass
 
     elif server == 'ph-rtagirov':
 
-        psets = psets[0 : 8]
+        psets = psets[0 : 1]
+#        pass
 
     else:
 

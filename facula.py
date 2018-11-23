@@ -102,9 +102,8 @@ def scan_mag(date):
         spot_x = np.concatenate((spot_mask[time]['xp'], spot_mask[time]['xn']))
         spot_y = np.concatenate((spot_mask[time]['yp'], spot_mask[time]['yn']))
 
-        B_tot = 0.0
-
-        h_tot = 0.0
+        B_tot = np.zeros(len(t))
+        h_tot = np.zeros(len(t))
 
         for i, j in itertools.product(range(180), range(360)):
 
@@ -122,7 +121,7 @@ def scan_mag(date):
 
                 helper = B - B_spot * n * 0.1 * 0.1
 
-                h_tot += B - helper
+                h_tot[k] += B - helper
 
                 if helper > 0 and helper <= B_sat:
 
@@ -162,7 +161,7 @@ def scan_mag(date):
 
                 v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
 
-            B_tot += B
+            B_tot[k] += B
 
     return t + date[0], r / norm, v / norm, B_tot, h_tot
 
@@ -210,8 +209,8 @@ with Pool(processes = nproc) as p:
                                r[k, 10], \
                                sum(r[k, :]), \
                                v[k]), \
-                               B_tot, \
-                               h_tot)
+                               B_tot[k], \
+                               h_tot[k])
 
             pbar.update()
 

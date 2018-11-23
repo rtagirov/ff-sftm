@@ -216,8 +216,8 @@ with Pool(processes = nproc) as p:
                                sum(r[k, :]), \
                                v[k], \
                                B_tot[k], \
-                               h_tot[k]), \
-                               h_cnt[k])
+                               h_tot[k], \
+                               h_cnt[k]))
 
             pbar.update()
 

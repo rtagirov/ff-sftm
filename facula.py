@@ -95,6 +95,11 @@ def scan_mag(date):
 
     r = np.zeros((len(t), 11))
 
+    B_tot = np.zeros(len(t))
+    h_tot = np.zeros(len(t))
+
+    h_cnt = np.zeros(len(t), dtype = 'int')
+
     for k in range(len(t)):
 
         time = date[0] + t[k]
@@ -102,12 +107,11 @@ def scan_mag(date):
         spot_x = np.concatenate((spot_mask[time]['xp'], spot_mask[time]['xn']))
         spot_y = np.concatenate((spot_mask[time]['yp'], spot_mask[time]['yn']))
 
-        B_tot = np.zeros(len(t))
-        h_tot = np.zeros(len(t))
-
         for i, j in itertools.product(range(180), range(360)):
 
             B = abs((B1[i, j] - B0[i, j]) * t[k] + B0[i, j])
+
+            B_tot[k] += B
 
             n = 0
 
@@ -131,6 +135,10 @@ def scan_mag(date):
                 if helper > B_sat:
 
                     ff = (1 - n * 0.1 * 0.1)
+
+                if helper <= 0.0:
+
+                    h_cnt[k] += 1
 
             elif n == 0 and B < B_sat:
 
@@ -161,9 +169,7 @@ def scan_mag(date):
 
                 v[k] += ff * np.cos(distance * conv) * np.cos(y_pos * conv)
 
-            B_tot[k] += B
-
-    return t + date[0], r / norm, v / norm, B_tot, h_tot
+    return t + date[0], r / norm, v / norm, B_tot, h_tot, h_cnt
 
 dates = [[i, i + 1] for i in range(math.floor(min(times)), math.ceil(max(times)) + 1)]
 
@@ -173,7 +179,7 @@ f = open(fpath, 'w')
 
 os.system('chmod 754 ' + fpath)
 
-fmt = '%9.2f ' + '%10.6f ' * 14 + '%10.6f\n'
+fmt = '%9.2f ' + '%10.6f ' * 13 + '%9.2f ' * 2 + '%i\n'
 
 with Pool(processes = nproc) as p:
 
@@ -191,7 +197,7 @@ with Pool(processes = nproc) as p:
 
         for result in results:
 
-            t, r, v, B_tot, h_tot = result
+            t, r, v, B_tot, h_tot, h_cnt = result
 
             for k in range(len(t)):
 
@@ -210,7 +216,8 @@ with Pool(processes = nproc) as p:
                                sum(r[k, :]), \
                                v[k], \
                                B_tot[k], \
-                               h_tot[k]))
+                               h_tot[k]), \
+                               h_cnt[k])
 
             pbar.update()
 

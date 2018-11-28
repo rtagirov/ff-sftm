@@ -78,7 +78,7 @@ x_c = 0.0
 mu_low = [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075, 0.0]
 mu_up = [1.0, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.075]
 
-spot_mask = np.load('./out/' + C + '_D' + D + '.npy').item()
+spot_mask = np.load('./out/npy/' + C + '_D' + D + '.npy').item()
 
 times = np.array(list(spot_mask.keys()))
 

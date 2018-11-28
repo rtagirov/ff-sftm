@@ -120,5 +120,5 @@ with Pool(processes = nproc) as p:
     p.close()
     p.join()
 
-np.save('./out/' + C + '_D' + D + '.npy', spot_mask)
+np.save('./out/npy/' + C + '_D' + D + '.npy', spot_mask)
 

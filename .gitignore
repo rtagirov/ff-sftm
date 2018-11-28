@@ -4,7 +4,7 @@
 *.out
 .nfs*
 out/*_*
-out/*.npy
+out/npy/*
 mag_*/
 inp/mag/*
 __pycache__/

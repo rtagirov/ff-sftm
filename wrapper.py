@@ -33,8 +33,8 @@ nproc, ar = get_args(sys.argv[1:])
 #D = [26.5, 47.0]
 #D = [60, 80, 100]
 #C = ['C22', 'C23']
-C = ['C16', 'C19']
-#C = ['C22']
+#C = ['C16', 'C19']
+C = ['C22']
 
 #D = [80, 100]
 D = [80]
@@ -60,9 +60,11 @@ elif ar == 'f':
 
 #    B_spot = np.array([800.0, 1200.0,])
     B_spot = np.array([800.0])
+#    B_spot = np.array([1175.0])
 #    B_spot = np.array([1000.0, 2000.0, 4000.0])
 
-    i = np.array([0.0, 33.0, 90.0])
+#    i = np.array([0.0, 33.0, 90.0])
+    i = np.array([0.0])
 
 #    psets = list(itertools.product(D, B_sat, B_spot))
     psets = list(itertools.product(C, D, B_sat, B_spot, i))
@@ -71,19 +73,23 @@ elif ar == 'f':
 
     if server == 'pulpo':
 
-        psets = psets[0 : 2]
+#        psets = psets[0 : 2]
+        pass
 
     elif server == 'mojo':
 
-        psets = psets[2 : 4]
+#        psets = psets[2 : 4]
+        pass
 
     elif server == 'helios1':
 
-        psets = psets[4 : 6]
+#        psets = psets[4 : 6]
+        pass
 
     elif server == 'helios2':
 
-        pass
+        psets = psets
+#        pass
 
     elif server == 'Tagirov-SLM8':
 

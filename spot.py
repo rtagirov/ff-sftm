@@ -122,7 +122,11 @@ with Pool(processes = nproc) as p:
 
 npy = './out/npy/'
 
+path = npy + C + '_D' + D + '.npy'
+
 os.system('mkdir -p ' + npy)
 
-np.save(npy + C + '_D' + D + '.npy', spot_mask)
+np.save(path, spot_mask)
+
+os.system('chmod 754 ' + path)
 

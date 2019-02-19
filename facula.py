@@ -149,7 +149,8 @@ def scan_mag(date):
 
                 ff = 1.0
 
-            x_rot = (j + 13.28 * (time - start)) % 359
+#            x_rot = (j + 13.28 * (time - start)) % 359
+            x_rot = j
 
             x_pos = 180.0 - x_rot
 
